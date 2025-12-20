@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <h2>Acceso de Administrador</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Correo electrónico</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn-primary">Iniciar Sesión</button>
+                <div class="error-message" id="loginError"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div class="admin-container" id="adminContainer" style="display: none;">
+        <!-- Admin Header -->
+        <header class="admin-header">
+            <div class="admin-header-content">
+                <h1>Panel de Administración</h1>
+                <div class="admin-actions">
+                    <span class="admin-user" id="adminUser"></span>
+                    <a href="index.html" class="btn-secondary">Ver Catálogo</a>
+                    <button class="btn-secondary" id="btnLogout">Cerrar Sesión</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Admin Tabs -->
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="products">Productos</button>
+            <button class="tab-btn" data-tab="categories">Categorías</button>
+        </div>
+
+        <!-- Products Tab -->
+        <div class="tab-content active" id="products-tab">
+            <div class="admin-section">
+                <div class="section-header">
+                    <h2>Gestión de Productos</h2>
+                    <button class="btn-primary" id="btnNewProduct">+ Nuevo Producto</button>
+                </div>
+                <div class="products-list" id="productsList">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Tab -->
+        <div class="tab-content" id="categories-tab">
+            <div class="admin-section">
+                <div class="section-header">
+                    <h2>Gestión de Categorías</h2>
+                    <button class="btn-primary" id="btnNewCategory">+ Nueva Categoría</button>
+                </div>
+                <div class="categories-list" id="categoriesList">
+                    <!-- Categories will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Form Modal -->
+    <div class="modal" id="productFormModal">
+        <div class="modal-content modal-large">
+            <button class="modal-close" id="btnCloseProductForm">&times;</button>
+            <div class="modal-body">
+                <h2 id="productFormTitle">Nuevo Producto</h2>
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productName">Nombre del Producto *</label>
+                            <input type="text" id="productName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productSku">Código/SKU</label>
+                            <input type="text" id="productSku">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productDescription">Descripción</label>
+                        <textarea id="productDescription" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productCategory">Categoría *</label>
+                            <select id="productCategory" required>
+                                <option value="">Seleccionar categoría</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="productStock">Stock Disponible</label>
+                            <input type="number" id="productStock" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productPriceUnit">Precio por Unidad *</label>
+                            <input type="number" id="productPriceUnit" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productPriceBox">Precio por Caja</label>
+                            <input type="number" id="productPriceBox" step="0.01" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productUnitsPerBox">Unidades por Caja</label>
+                        <input type="number" id="productUnitsPerBox" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="productActive" checked>
+                            Producto activo
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Imágenes del Producto</label>
+                        <input type="file" id="productImages" multiple accept="image/*">
+                        <small>Puedes seleccionar múltiples imágenes. La primera será la imagen principal.</small>
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="btnCancelProduct">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Producto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Form Modal -->
+    <div class="modal" id="categoryFormModal">
+        <div class="modal-content">
+            <button class="modal-close" id="btnCloseCategoryForm">&times;</button>
+            <div class="modal-body">
+                <h2 id="categoryFormTitle">Nueva Categoría</h2>
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId">
+                    
+                    <div class="form-group">
+                        <label for="categoryName">Nombre de la Categoría *</label>
+                        <input type="text" id="categoryName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categoryOrder">Orden de Visualización</label>
+                        <input type="number" id="categoryOrder" min="0" value="0">
+                        <small>Número menor aparece primero</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="btnCancelCategory">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Categoría</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
