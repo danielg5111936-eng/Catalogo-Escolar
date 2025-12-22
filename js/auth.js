@@ -1,8 +1,12 @@
-// Gestión de Autenticación
+// Gestión de Autenticación con Auto-Logout
 
 class AuthManager {
     constructor() {
         this.currentUser = null;
+        this.sessionTimeout = null;
+        this.warningTimeout = null;
+        this.SESSION_DURATION = 5 * 60 * 1000; // 5 minutos
+        this.WARNING_TIME = 60 * 1000; // Avisar 1 minuto antes
         this.init();
     }
 
@@ -11,6 +15,12 @@ class AuthManager {
         auth.onAuthStateChanged(user => {
             this.currentUser = user;
             this.handleAuthState(user);
+            
+            // Iniciar temporizador si está autenticado
+            if (user) {
+                this.startSessionTimer();
+                this.setupActivityListeners();
+            }
         });
 
         // Configurar evento de login
@@ -23,6 +33,127 @@ class AuthManager {
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', () => this.handleLogout());
+        }
+    }
+
+    setupActivityListeners() {
+        // Eventos que reinician el temporizador
+        const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+        
+        events.forEach(event => {
+            document.addEventListener(event, () => {
+                if (this.currentUser) {
+                    this.resetSessionTimer();
+                }
+            });
+        });
+    }
+
+    startSessionTimer() {
+        // Limpiar temporizadores anteriores
+        this.clearTimers();
+
+        // Mostrar indicador de sesión
+        this.showSessionIndicator();
+
+        // Temporizador de advertencia (4 minutos)
+        this.warningTimeout = setTimeout(() => {
+            this.showWarning();
+        }, this.SESSION_DURATION - this.WARNING_TIME);
+
+        // Temporizador de cierre de sesión (5 minutos)
+        this.sessionTimeout = setTimeout(() => {
+            this.autoLogout();
+        }, this.SESSION_DURATION);
+    }
+
+    resetSessionTimer() {
+        this.startSessionTimer();
+        this.hideWarning();
+    }
+
+    clearTimers() {
+        if (this.sessionTimeout) {
+            clearTimeout(this.sessionTimeout);
+        }
+        if (this.warningTimeout) {
+            clearTimeout(this.warningTimeout);
+        }
+    }
+
+    showSessionIndicator() {
+        let indicator = document.getElementById('sessionTimer');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'sessionTimer';
+            indicator.className = 'session-timer';
+            document.body.appendChild(indicator);
+        }
+        
+        const endTime = Date.now() + this.SESSION_DURATION;
+        this.updateTimerDisplay(indicator, endTime);
+        
+        // Actualizar cada segundo
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
+        
+        this.timerInterval = setInterval(() => {
+            const remaining = endTime - Date.now();
+            if (remaining <= 0) {
+                clearInterval(this.timerInterval);
+                return;
+            }
+            this.updateTimerDisplay(indicator, endTime);
+        }, 1000);
+    }
+
+    updateTimerDisplay(indicator, endTime) {
+        const remaining = Math.max(0, endTime - Date.now());
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        
+        indicator.textContent = `Sesión: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Mostrar advertencia en el último minuto
+        if (remaining <= this.WARNING_TIME) {
+            indicator.classList.add('warning');
+        } else {
+            indicator.classList.remove('warning');
+        }
+    }
+
+    showWarning() {
+        utils.showToast('Tu sesión expirará en 1 minuto. Mueve el mouse para mantenerla activa.', 'warning');
+    }
+
+    hideWarning() {
+        // Ocultar advertencia si existe
+    }
+
+    async autoLogout() {
+        this.clearTimers();
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
+        
+        utils.showToast('Sesión cerrada por inactividad', 'info');
+        
+        try {
+            await auth.signOut();
+            
+            // Limpiar indicador
+            const indicator = document.getElementById('sessionTimer');
+            if (indicator) {
+                indicator.remove();
+            }
+            
+            // Recargar después de 2 segundos
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
         }
     }
 
@@ -40,6 +171,18 @@ class AuthManager {
             // Usuario no autenticado
             if (loginContainer) loginContainer.style.display = 'flex';
             if (adminContainer) adminContainer.style.display = 'none';
+            
+            // Limpiar temporizadores
+            this.clearTimers();
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+            }
+            
+            // Remover indicador
+            const indicator = document.getElementById('sessionTimer');
+            if (indicator) {
+                indicator.remove();
+            }
         }
     }
 
@@ -53,15 +196,29 @@ class AuthManager {
         try {
             await auth.signInWithEmailAndPassword(email, password);
             errorDiv.textContent = '';
+            errorDiv.classList.remove('show');
         } catch (error) {
             console.error('Error de login:', error);
             errorDiv.textContent = this.getErrorMessage(error.code);
+            errorDiv.classList.add('show');
         }
     }
 
     async handleLogout() {
         try {
+            this.clearTimers();
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+            }
+            
             await auth.signOut();
+            
+            // Limpiar indicador
+            const indicator = document.getElementById('sessionTimer');
+            if (indicator) {
+                indicator.remove();
+            }
+            
             window.location.reload();
         } catch (error) {
             console.error('Error al cerrar sesión:', error);

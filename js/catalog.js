@@ -77,6 +77,7 @@ class CatalogManager {
         const container = document.getElementById('categoriesFilter');
         if (!container) return;
 
+        // Botón "Todos" siempre primero
         container.innerHTML = '<button class="category-btn active" data-category="all">Todos</button>';
 
         this.categories.forEach(category => {
@@ -87,6 +88,12 @@ class CatalogManager {
             btn.addEventListener('click', () => this.selectCategory(category.id, btn));
             container.appendChild(btn);
         });
+
+        // Agregar listener al botón "Todos"
+        const btnTodos = container.querySelector('[data-category="all"]');
+        if (btnTodos) {
+            btnTodos.addEventListener('click', () => this.selectCategory('all', btnTodos));
+        }
     }
 
     selectCategory(categoryId, btnElement) {
@@ -188,7 +195,7 @@ class CatalogManager {
                 ${product.description ? `<p class="product-description">${product.description}</p>` : ''}
                 <div class="product-prices">
                     <div class="price-item">
-                        <span class="price-label">Por unidad:</span>
+                        <span class="price-label">Precio:</span>
                         <span class="price-value">${utils.formatPrice(product.priceUnit)}</span>
                     </div>
                     ${hasBoxPrice ? `
@@ -234,10 +241,10 @@ class CatalogManager {
             ${product.description ? `<p style="margin-bottom: 1.5rem;">${product.description}</p>` : ''}
 
             <div class="price-selector">
-                <h3>Selecciona el tipo de compra:</h3>
+                <h3>${hasBoxPrice ? 'Selecciona el tipo de compra:' : 'Precio:'}</h3>
                 <div class="price-options">
                     <div class="price-option selected" data-type="unit" data-price="${product.priceUnit}">
-                        <span class="price-option-label">Por Unidad</span>
+                        <span class="price-option-label">${hasBoxPrice ? 'Por Unidad' : 'Precio Unitario'}</span>
                         <span class="price-option-value">${utils.formatPrice(product.priceUnit)}</span>
                     </div>
                     ${hasBoxPrice ? `
@@ -260,19 +267,21 @@ class CatalogManager {
             </div>
         `;
 
-        // Setup price selection
+        // Setup price selection solo si hay precio por caja
         const priceOptions = modalBody.querySelectorAll('.price-option');
         let selectedType = 'unit';
         let selectedPrice = product.priceUnit;
 
-        priceOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                priceOptions.forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedType = option.dataset.type;
-                selectedPrice = parseFloat(option.dataset.price);
+        if (hasBoxPrice) {
+            priceOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    priceOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedType = option.dataset.type;
+                    selectedPrice = parseFloat(option.dataset.price);
+                });
             });
-        });
+        }
 
         // Setup quantity controls
         let quantity = 1;
@@ -297,7 +306,6 @@ class CatalogManager {
         btnAddToCart.addEventListener('click', () => {
             this.addToCart(product, quantity, selectedType, selectedPrice);
             this.closeModal();
-            this.openCart();
         });
 
         modal.classList.add('open');
@@ -328,7 +336,7 @@ class CatalogManager {
 
         this.saveCart();
         this.updateCartUI();
-        utils.showToast('Producto agregado a la cotización', 'success');
+        utils.showToast(`Producto agregado a la cotización (${this.cart.reduce((sum, item) => sum + item.quantity, 0)})`, 'success');
     }
 
     removeFromCart(index) {
@@ -375,7 +383,7 @@ class CatalogManager {
                             <button class="btn-remove" onclick="catalogManager.removeFromCart(${index})">&times;</button>
                         </div>
                         <div class="cart-item-details">
-                            ${item.priceType === 'unit' ? 'Por unidad' : 'Por caja'}
+                            Tipo: ${item.priceType === 'unit' ? 'Unidad' : 'Caja'} - ${utils.formatPrice(item.price)} c/u
                         </div>
                         <div class="cart-item-controls">
                             <div class="quantity-control">
