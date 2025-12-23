@@ -4,7 +4,7 @@ class CatalogManager {
     constructor() {
         this.products = [];
         this.categories = [];
-        this.cart = this.loadCart();
+        this.cart = []; // Carrito vacío al iniciar
         this.currentCategory = 'all';
         this.searchQuery = '';
         this.init();
@@ -334,14 +334,12 @@ class CatalogManager {
             });
         }
 
-        this.saveCart();
         this.updateCartUI();
         utils.showToast(`Producto agregado a la cotización (${this.cart.reduce((sum, item) => sum + item.quantity, 0)})`, 'success');
     }
 
     removeFromCart(index) {
         this.cart.splice(index, 1);
-        this.saveCart();
         this.updateCartUI();
     }
 
@@ -350,7 +348,6 @@ class CatalogManager {
             this.removeFromCart(index);
         } else {
             this.cart[index].quantity = newQuantity;
-            this.saveCart();
             this.updateCartUI();
         }
     }
@@ -426,24 +423,12 @@ class CatalogManager {
         const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
         
         window.open(url, '_blank');
-    }
-
-    saveCart() {
-        try {
-            localStorage.setItem('catalog_cart', JSON.stringify(this.cart));
-        } catch (error) {
-            console.error('Error guardando carrito:', error);
-        }
-    }
-
-    loadCart() {
-        try {
-            const saved = localStorage.getItem('catalog_cart');
-            return saved ? JSON.parse(saved) : [];
-        } catch (error) {
-            console.error('Error cargando carrito:', error);
-            return [];
-        }
+        
+        // Limpiar carrito después de enviar
+        this.cart = [];
+        this.updateCartUI();
+        this.closeCart();
+        utils.showToast('Cotización enviada. El carrito se ha limpiado.', 'success');
     }
 }
 
