@@ -18,6 +18,16 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 const auth = firebase.auth ? firebase.auth() : null;
 
+// ========================================
+// CONFIGURACIÓN DE CLOUDINARY (GRATIS)
+// ========================================
+// Crea tu cuenta en: https://cloudinary.com/
+// Obtén estos valores en tu Dashboard
+const CLOUDINARY_CONFIG = {
+    cloudName: "dcmkhqfbm",  // Lo encuentras en tu dashboard
+    uploadPreset: "catalog_products"  // Lo crearás en Settings > Upload
+};
+
 // Número de WhatsApp para cotizaciones
 // Formato: código de país + número (sin espacios, guiones o caracteres especiales)
 // Ejemplo: "573001234567" para Colombia
@@ -28,6 +38,54 @@ const APP_CONFIG = {
     currency: "$",
     decimals: 0, // Número de decimales para precios
     maxImagesPerProduct: 5
+};
+
+// ========================================
+// UTILIDADES PARA CLOUDINARY
+// ========================================
+const imageUploader = {
+    // Subir imagen a Cloudinary
+    async uploadImage(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+        formData.append('cloud_name', CLOUDINARY_CONFIG.cloudName);
+        
+        try {
+            const response = await fetch(
+                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            
+            if (!response.ok) {
+                throw new Error('Error al subir imagen');
+            }
+            
+            const data = await response.json();
+            return data.secure_url;  // URL de la imagen
+        } catch (error) {
+            console.error('Error subiendo a Cloudinary:', error);
+            throw error;
+        }
+    },
+    
+    // Subir múltiples imágenes
+    async uploadMultiple(files) {
+        const uploadPromises = files.map(file => this.uploadImage(file));
+        return Promise.all(uploadPromises);
+    },
+    
+    // Eliminar imagen (opcional - requiere backend o API key)
+    // Por seguridad, Cloudinary no permite eliminar desde el frontend sin autenticación
+    // Las imágenes antiguas quedarán en tu cuenta pero no afectará el funcionamiento
+    async deleteImage(url) {
+        console.log('Imagen marcada para eliminación:', url);
+        // Las imágenes no usadas puedes eliminarlas manualmente desde Cloudinary Dashboard
+        return true;
+    }
 };
 
 // Utilidades
