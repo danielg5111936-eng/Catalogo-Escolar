@@ -34,6 +34,14 @@ class AuthManager {
         if (btnLogout) {
             btnLogout.addEventListener('click', () => this.handleLogout());
         }
+
+        // Cerrar sesión al cerrar la pestaña/ventana
+        window.addEventListener('beforeunload', () => {
+            if (this.currentUser) {
+                // Usar signOut de forma sincrónica
+                auth.signOut();
+            }
+        });
     }
 
     setupActivityListeners() {
@@ -194,6 +202,8 @@ class AuthManager {
         const errorDiv = document.getElementById('loginError');
 
         try {
+            // Usar persistencia SESSION para que solo dure en esta pestaña
+            await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
             await auth.signInWithEmailAndPassword(email, password);
             errorDiv.textContent = '';
             errorDiv.classList.remove('show');
