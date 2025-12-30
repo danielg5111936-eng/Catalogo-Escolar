@@ -7,6 +7,8 @@ class CatalogManager {
         this.cart = []; // Carrito vacío al iniciar
         this.currentCategory = 'all';
         this.searchQuery = '';
+        this.currentImages = [];
+        this.currentImageIndex = 0;
         this.init();
     }
 
@@ -53,6 +55,39 @@ class CatalogManager {
         btnCloseModal?.addEventListener('click', () => this.closeModal());
         productModal?.addEventListener('click', (e) => {
             if (e.target === productModal) this.closeModal();
+        });
+
+        // Image Viewer
+        const btnCloseViewer = document.getElementById('btnCloseViewer');
+        const btnZoomImage = document.getElementById('btnZoomImage');
+        const btnPrevImage = document.getElementById('btnPrevImage');
+        const btnNextImage = document.getElementById('btnNextImage');
+        const imageViewer = document.getElementById('imageViewer');
+        const viewerImage = document.getElementById('viewerImage');
+
+        btnCloseViewer?.addEventListener('click', () => this.closeImageViewer());
+        imageViewer?.addEventListener('click', (e) => {
+            if (e.target === imageViewer) this.closeImageViewer();
+        });
+        
+        btnZoomImage?.addEventListener('click', () => this.toggleZoom());
+        viewerImage?.addEventListener('click', () => this.toggleZoom());
+        
+        btnPrevImage?.addEventListener('click', () => this.previousImage());
+        btnNextImage?.addEventListener('click', () => this.nextImage());
+
+        // Keyboard navigation for image viewer
+        document.addEventListener('keydown', (e) => {
+            const viewer = document.getElementById('imageViewer');
+            if (viewer && viewer.classList.contains('open')) {
+                if (e.key === 'Escape') this.closeImageViewer();
+                if (e.key === 'ArrowLeft') this.previousImage();
+                if (e.key === 'ArrowRight') this.nextImage();
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    this.toggleZoom();
+                }
+            }
         });
     }
 
@@ -232,9 +267,17 @@ class CatalogManager {
             <h2>${product.name}</h2>
             ${product.sku ? `<p style="color: var(--text-secondary); margin-bottom: 1rem;">SKU: ${product.sku}</p>` : ''}
             
-            <div class="modal-images">
-                ${images.map(img => `
-                    <img src="${img}" alt="${product.name}" class="modal-image" onerror="this.src='https://via.placeholder.com/300x250?text=Sin+Imagen'">
+            <div class="modal-images" id="modalImagesContainer">
+                ${images.map((img, index) => `
+                    <img 
+                        src="${img}" 
+                        alt="${product.name}" 
+                        class="modal-image" 
+                        data-index="${index}"
+                        onerror="this.src='https://via.placeholder.com/300x250?text=Sin+Imagen'"
+                        style="cursor: pointer;"
+                        title="Click para ampliar"
+                    >
                 `).join('')}
             </div>
 
@@ -266,6 +309,15 @@ class CatalogManager {
                 </button>
             </div>
         `;
+
+        // Setup clicks en imágenes para abrir el visor
+        const modalImages = modalBody.querySelectorAll('.modal-image');
+        modalImages.forEach((img) => {
+            img.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.openImageViewer(images, index);
+            });
+        });
 
         // Setup price selection solo si hay precio por caja
         const priceOptions = modalBody.querySelectorAll('.price-option');
@@ -429,6 +481,81 @@ class CatalogManager {
         this.updateCartUI();
         this.closeCart();
         utils.showToast('Cotización enviada. El carrito se ha limpiado.', 'success');
+    }
+
+    // ===== IMAGE VIEWER =====
+    openImageViewer(images, startIndex = 0) {
+        this.currentImages = images;
+        this.currentImageIndex = startIndex;
+        
+        const viewer = document.getElementById('imageViewer');
+        const viewerImage = document.getElementById('viewerImage');
+        const thumbnailsContainer = document.getElementById('viewerThumbnails');
+        
+        if (!viewer || !viewerImage || !thumbnailsContainer) return;
+        
+        // Cargar imagen principal
+        viewerImage.src = images[startIndex];
+        viewerImage.classList.remove('zoomed');
+        
+        // Cargar miniaturas
+        thumbnailsContainer.innerHTML = images.map((img, index) => `
+            <img 
+                src="${img}" 
+                class="image-viewer-thumbnail ${index === startIndex ? 'active' : ''}" 
+                data-index="${index}"
+                onclick="catalogManager.selectImage(${index})"
+            >
+        `).join('');
+        
+        viewer.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    closeImageViewer() {
+        const viewer = document.getElementById('imageViewer');
+        const viewerImage = document.getElementById('viewerImage');
+        
+        if (viewer) viewer.classList.remove('open');
+        if (viewerImage) viewerImage.classList.remove('zoomed');
+        
+        document.body.style.overflow = '';
+    }
+
+    selectImage(index) {
+        this.currentImageIndex = index;
+        const viewerImage = document.getElementById('viewerImage');
+        
+        if (viewerImage) {
+            viewerImage.src = this.currentImages[index];
+            viewerImage.classList.remove('zoomed');
+        }
+        
+        // Actualizar miniaturas activas
+        document.querySelectorAll('.image-viewer-thumbnail').forEach((thumb, i) => {
+            thumb.classList.toggle('active', i === index);
+        });
+    }
+
+    previousImage() {
+        const newIndex = this.currentImageIndex > 0 
+            ? this.currentImageIndex - 1 
+            : this.currentImages.length - 1;
+        this.selectImage(newIndex);
+    }
+
+    nextImage() {
+        const newIndex = this.currentImageIndex < this.currentImages.length - 1 
+            ? this.currentImageIndex + 1 
+            : 0;
+        this.selectImage(newIndex);
+    }
+
+    toggleZoom() {
+        const viewerImage = document.getElementById('viewerImage');
+        if (viewerImage) {
+            viewerImage.classList.toggle('zoomed');
+        }
     }
 }
 
