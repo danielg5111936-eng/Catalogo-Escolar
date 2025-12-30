@@ -10,7 +10,7 @@
     --primary-color: #2563eb;
     --primary-dark: #1e40af;
     --primary-light: #3b82f6;
-    --secondary-color: #10b981;
+    --secondary-color: #90adff;
     --accent-color: #f59e0b;
     
     --success-color: #10b981;
@@ -933,7 +933,7 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
     padding: 1rem;
     position: relative;
     overflow: hidden;
@@ -991,7 +991,7 @@ html {
     left: 0;
     right: 0;
     height: 5px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #2563eb, #1e40af);
     border-radius: 1.5rem 1.5rem 0 0;
 }
 
@@ -1001,7 +1001,7 @@ html {
     font-size: 2rem;
     font-weight: 800;
     color: var(--text-primary);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1018,7 +1018,7 @@ html {
     width: 80px;
     height: 80px;
     margin: 0 auto 1.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1058,14 +1058,41 @@ html {
 
 .form-group input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.input-wrapper .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-wrapper .input-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.input-wrapper input {
+    padding-left: 3.75rem !important;
 }
 
 .input-icon {
     position: absolute;
     left: 1rem;
-    top: 2.75rem;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--text-tertiary);
     pointer-events: none;
 }
@@ -1073,7 +1100,7 @@ html {
 .login-box .btn-primary {
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
     color: white;
     border: none;
     border-radius: var(--radius-lg);
