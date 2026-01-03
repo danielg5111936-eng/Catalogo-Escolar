@@ -230,7 +230,7 @@ class CatalogManager {
                 ${product.description ? `<p class="product-description">${product.description}</p>` : ''}
                 <div class="product-prices">
                     <div class="price-item">
-                        <span class="price-label">Precio:</span>
+                        <span class="price-label">Precio und:</span>
                         <span class="price-value">${utils.formatPrice(product.priceUnit)}</span>
                     </div>
                     ${hasBoxPrice ? `
@@ -563,4 +563,5 @@ class CatalogManager {
 let catalogManager;
 document.addEventListener('DOMContentLoaded', () => {
     catalogManager = new CatalogManager();
+
 });
