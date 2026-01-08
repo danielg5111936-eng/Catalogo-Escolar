@@ -1,6 +1,4 @@
 // Configuración de Firebase
-// IMPORTANTE: Reemplaza estos valores con los de tu proyecto Firebase
-
 const firebaseConfig = {
   apiKey: "AIzaSyD_e39H7_c3MOJiddqhAxLBMVzBFqoqzXo",
   authDomain: "catalogo-escolar-44b09.firebaseapp.com",
@@ -30,8 +28,7 @@ const CLOUDINARY_CONFIG = {
 
 // Número de WhatsApp para cotizaciones
 // Formato: código de país + número (sin espacios, guiones o caracteres especiales)
-// Ejemplo: "573001234567" para Colombia
-const WHATSAPP_NUMBER = "57";
+const WHATSAPP_NUMBER = "573043806332";
 
 // Configuración de la aplicación
 const APP_CONFIG = {
@@ -201,4 +198,5 @@ style.textContent = `
         }
     }
 `;
+
 document.head.appendChild(style);
